@@ -157,7 +157,8 @@ class ReplayBuffer:
         if store is None:
             # numpy backend
             meta = dict()
-            for key, value in src_root['meta'].items():
+            for key in src_root['meta'].keys():
+                value = src_root['meta'][key]
                 if isinstance(value, zarr.Group):
                     continue
                 if len(value.shape) == 0:
@@ -220,7 +221,7 @@ class ReplayBuffer:
         if backend == 'numpy':
             print('backend argument is deprecated!')
             store = None
-        group = zarr.open(os.path.expanduser(zarr_path), 'r')
+        group = zarr.open(os.path.expanduser(zarr_path), 'r+')
         return cls.copy_from_store(src_store=group.store, store=store, 
             keys=keys, chunks=chunks, compressors=compressors, 
             if_exists=if_exists, **kwargs)
