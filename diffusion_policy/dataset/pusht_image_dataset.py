@@ -18,17 +18,32 @@ class PushTImageDataset(BaseImageDataset):
             pad_after=0,
             seed=42,
             val_ratio=0.0,
-            max_train_episodes=None
+            max_train_episodes=None,
+            client_id=0,
+            client_num=10,
             ):
         
         super().__init__()
         self.replay_buffer = ReplayBuffer.copy_from_path(
             zarr_path, keys=['img', 'state', 'action'])
-        val_mask = get_val_mask(
-            n_episodes=self.replay_buffer.n_episodes, 
+        n_episodes = self.replay_buffer.n_episodes
+        indices = np.arange(n_episodes)
+        splits = np.array_split(indices, client_num)
+        
+        client_indices = splits[client_id]
+
+        # クライアント内でvalidationマスクを作成
+        val_mask_local = get_val_mask(
+            n_episodes=len(client_indices),
             val_ratio=val_ratio,
-            seed=seed)
-        train_mask = ~val_mask
+            seed=seed
+        )
+        val_mask = np.zeros(n_episodes, dtype=bool)
+        val_mask[client_indices] = val_mask_local
+        train_mask_local = ~val_mask_local
+        train_mask = np.zeros(n_episodes, dtype=bool)
+        train_mask[client_indices] = train_mask_local
+        
         train_mask = downsample_mask(
             mask=train_mask, 
             max_n=max_train_episodes, 
