@@ -4,6 +4,9 @@ python eval.py --checkpoint data/image/pusht/diffusion_policy_cnn/train_0/checkp
 """
 
 import sys
+
+import diffusion_policy.workspace
+import diffusion_policy.workspace.train_diffusion_unet_hybrid_workspace
 # use line-buffering for both stdout and stderr
 sys.stdout = open(sys.stdout.fileno(), mode='w', buffering=1)
 sys.stderr = open(sys.stderr.fileno(), mode='w', buffering=1)
@@ -17,6 +20,8 @@ import dill
 import wandb
 import json
 from diffusion_policy.workspace.base_workspace import BaseWorkspace
+import diffusion_policy
+from omegaconf import OmegaConf
 
 @click.command()
 @click.option('-c', '--checkpoint', required=True)
@@ -30,7 +35,14 @@ def main(checkpoint, output_dir, device):
     # load checkpoint
     payload = torch.load(open(checkpoint, 'rb'), pickle_module=dill)
     cfg = payload['cfg']
-    cls = hydra.utils.get_class(cfg._target_)
+   
+    if not hasattr(cfg.task, "env_runner"):
+        OmegaConf.set_struct(cfg, False)
+        cfg.task.env_runner = {'_target_': 'diffusion_policy.env_runner.pusht_image_runner.PushTImageRunner', 'fps': 10, 'legacy_test': True, 'max_steps': 300, 'n_action_steps': 8, 'n_envs': None, 'n_obs_steps': 2, 'n_test': 50, 'n_test_vis': 4, 'n_train': 6, 'n_train_vis': 2, 'past_action': False, 'test_start_seed': 100000, 'train_start_seed': 0}
+        OmegaConf.set_struct(cfg, False)
+    print(OmegaConf.to_yaml(cfg))
+
+    cls = diffusion_policy.workspace.train_diffusion_unet_hybrid_workspace.TrainDiffusionUnetHybridWorkspace
     workspace = cls(cfg, output_dir=output_dir)
     workspace: BaseWorkspace
     workspace.load_payload(payload, exclude_keys=None, include_keys=None)
@@ -45,6 +57,10 @@ def main(checkpoint, output_dir, device):
     policy.eval()
     
     # run eval
+
+        
+    
+    print(cfg.task.env_runner)
     env_runner = hydra.utils.instantiate(
         cfg.task.env_runner,
         output_dir=output_dir)
