@@ -37,7 +37,7 @@ class BaseWorkspace:
             include_keys=None,
             use_thread=True):
         if path is None:
-            path = pathlib.Path(self.output_dir).joinpath('checkpoints', f'{tag}.ckpt')
+            path = pathlib.Path(self.output_dir).joinpath(f'checkpoints_{tag}', f'{tag}.ckpt')
         else:
             path = pathlib.Path(path)
         if exclude_keys is None:
@@ -71,7 +71,7 @@ class BaseWorkspace:
         return str(path.absolute())
     
     def get_checkpoint_path(self, tag='latest'):
-        return pathlib.Path(self.output_dir).joinpath('checkpoints', f'{tag}.ckpt')
+        return pathlib.Path(self.output_dir).joinpath(f'checkpoints_{tag}', f'{tag}.ckpt')
 
     def load_payload(self, payload, exclude_keys=None, include_keys=None, **kwargs):
         if exclude_keys is None:
