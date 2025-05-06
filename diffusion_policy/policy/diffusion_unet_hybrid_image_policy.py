@@ -353,7 +353,7 @@ class DiffusionUnetHybridImagePolicy(BaseImagePolicy):
     def compute_loss_diffusion_only(self, batch):
         # normalize input
         assert 'valid_mask' not in batch
-        nobs_features = self.normalizer.normalize(batch['nobs_feature'])
+        nobs_features = batch['nobs_feature']
         nactions = self.normalizer['action'].normalize(batch['action'])
         batch_size = nactions.shape[0]
         horizon = nactions.shape[1]
