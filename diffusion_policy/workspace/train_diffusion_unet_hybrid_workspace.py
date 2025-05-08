@@ -270,10 +270,15 @@ class TrainDiffusionUnetHybridWorkspace(BaseWorkspace):
                     # We can't copy the last checkpoint here
                     # since save_checkpoint uses threads.
                     # therefore at this point the file might have been empty!
-                    topk_ckpt_path = topk_manager.get_ckpt_path(metric_dict)
+                    # topk_ckpt_path = topk_manager.get_ckpt_path(metric_dict)
 
-                    if topk_ckpt_path is not None:
-                        self.save_checkpoint(path=topk_ckpt_path)
+                    # if topk_ckpt_path is not None:
+                    #     self.save_checkpoint(path=topk_ckpt_path)
+                    ckpt_name = f"epoch={self.epoch}.ckpt"
+                    ckpt_path = os.path.join(self.output_dir, "checkpoints", ckpt_name)
+                    self.save_checkpoint(path=ckpt_path)
+                    
+                    
                 # ========= eval end for this epoch ==========
                 policy.train()
 
